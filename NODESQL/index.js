@@ -1,15 +1,21 @@
+//import EXPRESS
 const express = require('express');
+//import MySQL
 const mysql = require('mysql');
+//import Body Parser
+const bodyparser = require('body-parser');
+
 
 //creating a connection
-const dbcon = mysql.createConnection({
+const myConnection = mysql.createConnection({
     host    : 'localhost',
     user    : 'root',
     password: 'password',
-    database: 'nodesql'
+    database: 'nodesql',
+    multipleStatements: true
 });
 //connect to database
-dbcon.connect((err) => {
+myConnection.connect((err) => {
     if(err) throw err;
     console.log('MySql Connected...');
 }); 
@@ -17,10 +23,11 @@ dbcon.connect((err) => {
 //setting up an express server
 const app = express();
 
+/* //TESTING
 //creating a db
 app.get('/createdb', (req, res) => {
     let sql = 'CREATE DATABASE nodesql';
-    dbcon.query(sql, (err, result) => {
+    myConnection.query(sql, (err, result) => {
         if(err) throw err;
         console.log(result);
         res.send('database created...');
@@ -29,7 +36,7 @@ app.get('/createdb', (req, res) => {
 //creating a table
 app.get('/createposttable', (req, res) => {
     let sql = 'CREATE TABLE posts(id int AUTO_INCREMENT, firstName VARCHAR(25), lastName VARCHAR(25), messageTitle VARCHAR(50), messageBody VARCHAR(255), PRIMARY KEY(id))';
-    dbcon.query(sql, (err, result) => {
+    myConnection.query(sql, (err, result) => {
         if(err) throw err;
         console.log(result);
         res.send('post table created...');
@@ -39,15 +46,71 @@ app.get('/createposttable', (req, res) => {
 app.get('/addpostex', (req, res) => {
     let post = {firstName: 'Hini', lastName: 'Manan', messageTitle: 'Hello World!', messageBody: 'welcome to the testing of nodejs with mysql'};
     let sql = 'INSERT INTO posts SET ?';
-    let query = dbcon.query(sql, post, (err, result) => {
+    let query = myConnection.query(sql, post, (err, result) => {
         if(err) throw err;
         console.log(result);
         res.send('post example added...');
     });
 });
-
-
+*/
+app.use(bodyparser.json());
 
 app.listen('5000', () => {
-    console.log('Server Started on Port 5000');
+    console.log('Server Started on Port: 5000');
+});
+
+//CRUD (RESTful) functions
+//GET basic
+app.get('/posts', (req, res) => {
+    let sql = "SELECT * FROM posts"
+    myConnection.query(sql, (err, rows, fields) => {
+        if(err) throw err;
+        console.log(rows);
+        res.send(rows);
+        res.send('posts data retrieved...');
+    });
+});
+//GET based on name or any entity attribute
+app.get('/posts/:id', (req, res) => {
+    let sql = "SELECT * FROM posts WHERE id = ?"
+    myConnection.query(sql, [req.params.id], (err, result) => {
+        if(err) throw err;
+        console.log(result);
+        res.send(result);
+        res.send('posts data retrieved...');
+    });
+});
+
+//DELETE a data
+app.delete('/posts/:id', (req, res) => {
+    let sql = "DELETE FROM posts WHERE id = ?"
+    myConnection.query(sql, [req.params.id], (err, result) => {
+        if(err) throw err;
+        console.log("Data deleted successfully.")
+        res.send('requested data deleted...');
+    });
+});
+
+//INSERT (POST) a data
+app.post('/posts', (req, res) => {
+    let post = req.body;
+    let sql = "SET @id = ?; SET @firstName = ?; SET @lastName = ?; SET @messageTitle = ?; SET @messageBody = ?; CALL postsAddorEdit(@id, @firstName, @lastName, @messageTitle, @messageBody);"
+    myConnection.query(sql, [post.id, post.firstName, post.lastName, post.messageTitle, post.messageBody], (err, result) => {
+        if(err) throw err;
+        console.log("post inserted...");
+        console.log(result);
+        res.send(result);
+    });
+});
+
+//UPDATE (PUT) a data
+app.put('/posts', (req, res) => {
+    let post = req.body;
+    let sql = "SET @id = ?; SET @firstName = ?; SET @lastName = ?; SET @messageTitle = ?; SET @messageBody = ?; CALL postsAddorEdit(@id, @firstName, @lastName, @messageTitle, @messageBody);"
+    myConnection.query(sql, [post.id, post.firstName, post.lastName, post.messageTitle, post.messageBody], (err, result) => {
+        if(err) throw err;
+        console.log("post updated...");
+        console.log(result);
+        res.send(result);
+    });
 });
