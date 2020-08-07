@@ -6,11 +6,12 @@ const mysql = require('mysql');
 const bodyparser = require('body-parser');
 
 
+
 //creating a connection
 const myConnection = mysql.createConnection({
     host    : 'localhost',
     user    : 'root',
-    password: 'password',
+    password: 'MySQL@2020',
     database: 'nodesql',
     multipleStatements: true
 });
@@ -20,7 +21,7 @@ myConnection.connect((err) => {
     console.log('MySql Connected...');
 }); 
 
-//setting up an express server
+//setting up an express framework server
 const app = express();
 
 /* //TESTING
@@ -53,6 +54,8 @@ app.get('/addpostex', (req, res) => {
     });
 });
 */
+
+//using body-parser to parse incoming requests as JSON
 app.use(bodyparser.json());
 
 app.listen('5000', () => {
@@ -62,18 +65,18 @@ app.listen('5000', () => {
 //CRUD (RESTful) functions
 //GET basic
 app.get('/posts', (req, res) => {
-    let sql = "SELECT * FROM posts"
-    myConnection.query(sql, (err, rows, fields) => {
+    let sql = "SELECT * FROM user"
+    myConnection.query(sql, (err, result) => {
         if(err) throw err;
-        console.log(rows);
-        res.send(rows);
+        console.log(result);
+        res.send(result);
         res.send('posts data retrieved...');
     });
 });
-//GET based on name or any entity attribute
-app.get('/posts/:id', (req, res) => {
-    let sql = "SELECT * FROM posts WHERE id = ?"
-    myConnection.query(sql, [req.params.id], (err, result) => {
+//GET based on username
+app.get('/posts/:username', (req, res) => {
+    let sql = "SELECT * FROM user WHERE username = ?"
+    myConnection.query(sql, [req.params.username], (err, result) => {
         if(err) throw err;
         console.log(result);
         res.send(result);
